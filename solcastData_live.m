@@ -9,6 +9,7 @@ data = webread(dataUrl, options);
 
 %% 
 pv=[data.forecasts.pv_estimate];
+period_end = {data.forecasts.period_end}.';
 cal1 = datetime(period_end,'TimeZone','UTC','InputFormat','yyyy-MM-dd''T''HH:mm:ss.SSSSSSS''Z');
 blank = isnat(cal1);
 for i =1:length(blank)
@@ -48,20 +49,21 @@ grid on;
 % out  = bsxfun(@plus, days, t.');
 
 a = datenum(0/24:1/48:23/24+2/48);
-
-C = datetime(datestr(a, 'HH:MM:SS.FFF'),'InputFormat','HH:mm:ss.SSS','Format','HH:mm');
-C.TimeZone= 'America/Chicago';
+tUpper=datetime("21:00",'InputFormat','HH:mm','Format','HH:mm');
+tLower=datetime("09:00",'InputFormat','HH:mm','Format','HH:mm');
+%C = datetime(datestr(a, 'HH:mm'),'InputFormat','HH:mm','Format','HH:mm');
+%C.TimeZone= 'America/Chicago';
 for i=1:length(a)
-if isbetween(t(i),C(19),C(43))
-    prices(i)=8.67;
-else
-    prices(i)=8.92;
-end
+    if  hour(t(i))>=hour(tLower)&&hour(t(i))<hour(tUpper)
+        prices(i)=8.92;
+    else
+        prices(i)=8.67;
+    end
 
 end
 
 yyaxis right
 
-
 plot(t,prices);
 datetick('x', 'dd-mmm-yyyy HH:MM')
+ylabel('Cents per kWh')
