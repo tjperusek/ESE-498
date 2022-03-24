@@ -16,6 +16,7 @@ datetime1.Format = 'hh:mm';
 plot(datetime1,double(pv));
 xlabel('Time')
 ylabel('Solar AC Generation (kW)');
+title('Historical Solar Generation and Price per Watt Comparison');
 grid on;
 
 prices = zeros(1,49);
@@ -29,35 +30,60 @@ plot(dv,prices);
 
 sum = 0;
 devices = [150; 450; 1400; 1500; 4500; 5000];
-array = zeros(2,49);
+devices = devices/1000;
+hours = [16; 2; 2; 2; 2; 2];
+array = zeros(49,2);
 pv = double(pv);
 for i=1:49
-    for j=1:20
+    for n=1:length(devices)    
+
         if (prices(i) == 8.67 && pv(i) < 0.5)
             %array(i,1) = 'grid';
             array(i,1) = 1;
+            if (pv(i) < devices(n))
+                array(i,2) = devices(n);
+            end
         elseif (prices(i) == 8.67 && pv(i) >= 0.5)
             %array(i,1) = 'store';
             array(i,1) = 3;
         elseif (prices(i) == 8.92 && pv(i) >= 0.5)
-            count = 1;
-            while (count <= length(devices))
-                array(i,1) = 2;
-                if (pv(i) > devices(count)/1000)
-                    %array(i,1) = 'solar';
-%                         sum = sum + devices(count);
-%                         array(i,2) = sum;
-                    array(i,j) = devices(count);
-%                     else
-%                         %array(i,1) = 'do nothing';
-%                         array(i,1) = 0;
+            array(i,1) = 2;
+            if (pv(i) >= devices(n))
+                for m=1:length(hours)
+                    while (hours(m) > 0)
+                        array(i,n+1) = devices(n);
+                        hours(m) = hours(m) - 1;
+                    end
                 end
-                count = count + 1;
+%             else
+%                 if (array(i,1) == 1)
+%                     array(i,n+1) = devices(n);
+%                 end
             end
+        
+
+
+%         count = 1;
+%         %array(i,1) = 'solar';
+%         while (count <= length(devices))       
+%             array(i,1) = 2;
+%             if (pv(i) > devices(count))
+%                 for j=1:length(hours)
+% %                         sum = sum + devices(count);
+% %                         array(i,2) = sum;
+%                     for k=1:length(devices)
+%                         array(i+j-1,k) = devices(count);
+%                     end
+%                 end
+%             end
+%             count = count + 1;     
+%         end
+
+
+
         else
             %array(i,1) = 'do nothing';
             array(i,1) = 0;
         end
-        
     end
 end
