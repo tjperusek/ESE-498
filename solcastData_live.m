@@ -102,5 +102,11 @@ for i=1:length(tTot)
 end
 figure(3)
 plot(calPast(1:48),double(pvPast(1:48)),'r',cal1(1:48),double(pv(1,1:48)),'b')
+xlabel('Time')
+ylabel('Solar AC Generation (kW)');
+title('Yesterday to Tomorrow Solar')
+grid on;
 yyaxis right
+datetick('x', 'dd-mmm-yyyy HH:MM')
+ylabel('Cents per kWh')
 plot(tTot,pricesTotal);
