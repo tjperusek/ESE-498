@@ -26,11 +26,11 @@ prices(42:end) = 8.67;
 dv = 0/24:1/48:23/24+2/48;
 
 yyaxis right
-plot(dv,prices);
+%plot(dv,prices);
 
 sum = 0;
 devices = [150; 450; 1400; 1500; 4500; 5000];
-devices = devices/1000;
+devices = devices/2000;
 dhours = [16; 2; 2; 2; 2; 2];
 array = zeros(49,2);
 pv = double(pv);
