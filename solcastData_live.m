@@ -69,7 +69,7 @@ ylabel('Cents per kWh')
 
 sum = 0;
 devices = [150; 450; 1400; 1500; 4500; 5000];
-devices = devices/1000;
+devices = devices/2000;
 dhours = [16; 2; 2; 2; 2; 2];
 array = zeros(49,9);
 
@@ -89,6 +89,7 @@ for i=1:49
         %array(i,1) = 'do nothing';
         array(i,3) = 0;
     end
+
 end
 
 sum = 0;
@@ -99,7 +100,7 @@ for i=1:49
             count = dhours(k); %length of running device
             for j=1:dhours(k)
                 if (pv(i) > devices(k))
-                    if (count >= 0 && array(i+j-1,3) == 2 && sum < pv(i))
+                    if (count >= 0 && array(i+j-1,3) == 2)
                         array(i+j-1,k+3) = devices(k);
                     end
                     count = count - 1;
@@ -175,54 +176,3 @@ ylabel('Cents per kWh')
 plot(tTot,pricesTotal);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-devices = [150; 450; 1400; 1500; 4500; 5000];
-devices = devices/2000;
-dhours = [16; 2; 2; 2; 2; 2];
-array = zeros(49,2);
-pv = double(pv);
-
-for i=1:49
-    array(i,1) = i;
-    if (pricesF(i) == 8.67 && pv(i) < 0.5)
-        %array(i,1) = 'grid';
-        array(i,2) = 1;
-    elseif (pricesF(i) == 8.67 && pv(i) >= 0.5)
-        %array(i,1) = 'store';
-        array(i,2) = 3;
-    elseif (pricesF(i) == 8.92 && pv(i) >= 0.5)
-        %array(i,1) = 'solar';
-        array(i,2) = 2;
-    else
-        %array(i,1) = 'do nothing';
-        array(i,2) = 0;
-    end
-end
-
-sum = 0;
-for i=1:49
-    if (array(i,2) == 2)
-        for k=1:6
-            count = dhours(k);
-            for j=1:dhours(k)
-                if (pv(i) > devices(k))
-                    if (count >= 0 && array(i+j-1,2) == 2 && sum < pv(i))
-                        array(i+j-1,k+2) = devices(k);
-                    end
-                    count = count - 1;
-                else
-                    array(i+j-1,k+2) = 0;
-                    count2 = 0;
-                    array(count2+j,k+2) = devices(k);
-                end
-                count2 = count2 + 1;
-            end
-        end
-        break;
-    end
-    if (array(i,2) == 0)
-        array(i,3) = 0;
-    end
-    if (array(i,2) == 3)
-        array(i,3) = 0;
-    end
-end
