@@ -32,7 +32,7 @@ sum = 0;
 devices = [150; 450; 1400; 1500; 4500; 5000];
 devices = devices/1000;
 dhours = [16; 2; 2; 2; 2; 2];
-array = zeros(49,2);
+array = zeros(49,9);
 pv = double(pv);
 
 for i=1:49
@@ -52,18 +52,19 @@ for i=1:49
     end
 end
 
+sum = 0;
 for i=1:49
     if (array(i,2) == 2)
-        for k=1:6
-            count = dhours(k);
+        for k=1:6 %each device
+            count = dhours(k); %length of running device
             for j=1:dhours(k)
                 if (pv(i) > devices(k))
-                    if (count >= 0 && array(i+j-1,2) == 2)
+                    if (count >= 0 && array(i+j-1,2) == 2 && sum < pv(i))
                         array(i+j-1,k+2) = devices(k);
                     end
                     count = count - 1;
                 else
-                    array(i+j-1,k+2) = -1;
+                    array(i+j-1,k+2) = 0;
                     count2=0;
                     array(count2+j,k+2) = devices(k);
                 end
@@ -72,23 +73,6 @@ for i=1:49
         end
         break;
     end
-
-%     for i=1:49
-%         if (array(i,2) == 1)
-%             for n=1:6
-%             count2 = dhours(n);
-%                 for p=1:dhours(n)
-%                     if (count2 >= 0 && array(i,2) == 1)
-%                         array(i+p-1,n+2) = devices(n);
-%                     else
-%                         array(i+p-1,n+2) = -1;
-%                     end
-%                     count2 = count2 - 1;
-%                 end
-%             end
-%             break;
-%         end
-%     end
     if (array(i,2) == 0)
         array(i,3) = 0;
     end
