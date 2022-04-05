@@ -50,21 +50,30 @@ for i=1:49
         %array(i,1) = 'do nothing';
         array(i,3) = 0;
     end
+
+    array(i,2) = pv(i);
 end
 
 sum = 0;
 for i=1:49
 <<<<<<< HEAD
+<<<<<<< HEAD
     if (array(i,2) == 2)
         for k=1:6 %each device
             count = dhours(k); %length of running device
+=======
+    if (array(i,3) == 2)
+        for k=1:6
+            count = dhours(k);
+>>>>>>> 6179a8ff19c4b192912fc167534276f94caf18ab
             for j=1:dhours(k)
                 if (pv(i) > devices(k))
-                    if (count >= 0 && array(i+j-1,2) == 2 && sum < pv(i))
-                        array(i+j-1,k+2) = devices(k);
+                    if (count >= 0 && array(i+j-1,3) == 2 && sum < pv(i))
+                        array(i+j-1,k+3) = devices(k);
                     end
                     count = count - 1;
                 else
+<<<<<<< HEAD
                     array(i+j-1,k+2) = 0;
                     count2=0;
                     array(count2+j,k+2) = devices(k);
@@ -83,16 +92,21 @@ for i=1:49
                     count2 = 0;
                     array(count2+j,k+3) = devices(k);
 >>>>>>> 3af6fb6930ffb6553ab84b09a879258843e5bb96
+=======
+                    array(i+j-1,k+3) = 0;
+                    count2 = 0;
+                    array(count2+j,k+3) = devices(k);
+>>>>>>> 6179a8ff19c4b192912fc167534276f94caf18ab
                 end
                 count2 = count2 + 1;
             end
         end
         break;
     end
-    if (array(i,2) == 0)
-        array(i,3) = 0;
+    if (array(i,3) == 0)
+        array(i,4) = 0;
     end
-    if (array(i,2) == 3)
-        array(i,3) = 0;
+    if (array(i,3) == 3)
+        array(i,4) = 0;
     end
 end

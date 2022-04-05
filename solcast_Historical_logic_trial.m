@@ -56,15 +56,14 @@ end
 
 sum = 0;
 for i=1:49
-<<<<<<< HEAD
+
     if (array(i,2) == 2)
         for k=1:6 %each device
             count = dhours(k); %length of running device
-=======
     if (array(i,3) == 2)
         for k=1:6
             count = dhours(k);
->>>>>>> 3af6fb6930ffb6553ab84b09a879258843e5bb96
+
             for j=1:dhours(k)
                 if (pv(i) > devices(k))
                     if (count >= 0 && array(i+j-1,3) == 2 && sum < pv(i))
