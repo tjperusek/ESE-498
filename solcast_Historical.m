@@ -26,64 +26,59 @@ prices(42:end) = 8.67;
 dv = 0/24:1/48:23/24+2/48;
 
 yyaxis right
-plot(dv,prices);
+%plot(dv,prices);
 
 sum = 0;
 devices = [150; 450; 1400; 1500; 4500; 5000];
-devices = devices/1000;
-hours = [16; 2; 2; 2; 2; 2];
-array = zeros(49,2);
+devices = devices/2000;
+dhours = [16; 2; 2; 2; 2; 2];
+array = zeros(49,9);
 pv = double(pv);
+
 for i=1:49
-    for n=1:length(devices)    
+    array(i,1) = i;
+    if (prices(i) == 8.67 && pv(i) < 0.5)
+        %array(i,1) = 'grid';
+        array(i,3) = 1;
+    elseif (prices(i) == 8.67 && pv(i) >= 0.5)
+        %array(i,1) = 'store';
+        array(i,3) = 3;
+    elseif (prices(i) == 8.92 && pv(i) >= 0.5)
+        %array(i,1) = 'solar';
+        array(i,3) = 2;
+    else
+        %array(i,1) = 'do nothing';
+        array(i,3) = 0;
+    end
 
-        if (prices(i) == 8.67 && pv(i) < 0.5)
-            %array(i,1) = 'grid';
-            array(i,1) = 1;
-            if (pv(i) < devices(n))
-                array(i,2) = devices(n);
-            end
-        elseif (prices(i) == 8.67 && pv(i) >= 0.5)
-            %array(i,1) = 'store';
-            array(i,1) = 3;
-        elseif (prices(i) == 8.92 && pv(i) >= 0.5)
-            array(i,1) = 2;
-            if (pv(i) >= devices(n))
-                for m=1:length(hours)
-                    while (hours(m) > 0)
-                        array(i,n+1) = devices(n);
-                        hours(m) = hours(m) - 1;
+    array(i,2) = pv(i);
+end
+
+sum = 0;
+for i=1:49
+    if (array(i,3) == 2)
+        for k=1:6
+            count = dhours(k);
+            for j=1:dhours(k)
+                if (pv(i) > devices(k))
+                    if (count >= 0 && array(i+j-1,3) == 2 && sum < pv(i))
+                        array(i+j-1,k+3) = devices(k);
                     end
+                    count = count - 1;
+                else
+                    array(i+j-1,k+3) = 0;
+                    count2 = 0;
+                    array(count2+j,k+3) = devices(k);
                 end
-%             else
-%                 if (array(i,1) == 1)
-%                     array(i,n+1) = devices(n);
-%                 end
+                count2 = count2 + 1;
             end
-        
-
-
-%         count = 1;
-%         %array(i,1) = 'solar';
-%         while (count <= length(devices))       
-%             array(i,1) = 2;
-%             if (pv(i) > devices(count))
-%                 for j=1:length(hours)
-% %                         sum = sum + devices(count);
-% %                         array(i,2) = sum;
-%                     for k=1:length(devices)
-%                         array(i+j-1,k) = devices(count);
-%                     end
-%                 end
-%             end
-%             count = count + 1;     
-%         end
-
-
-
-        else
-            %array(i,1) = 'do nothing';
-            array(i,1) = 0;
         end
+        break;
+    end
+    if (array(i,3) == 0)
+        array(i,4) = 0;
+    end
+    if (array(i,3) == 3)
+        array(i,4) = 0;
     end
 end
