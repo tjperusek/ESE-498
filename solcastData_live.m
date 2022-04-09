@@ -65,9 +65,8 @@ plot(t,pricesF);
 datetick('x', 'dd-mmm-yyyy HH:MM')
 ylabel('Cents per kWh')
 
+%% 
 
-
-sum = 0;
 devices = [150; 450; 1400; 1500; 4500; 5000];
 devices = devices/2000;
 dhours = [16; 2; 2; 2; 2; 2];
@@ -93,21 +92,29 @@ for i=1:49
 end
 
 sum = 0;
-count2=0;
+count2 = 0;
+count3 = 1;
 for i=1:49
     if (array(i,3) == 2)
         for k=1:6 %each device
             count = dhours(k); %length of running device
+            count3 = count3 + 2;
             for j=1:dhours(k)
                 if (pv(i) > devices(k))
-                    if (count >= 0 && array(i+j-1,3) == 2)
+                    if (count >= 0 && array(i+j-1,3) == 2 && sum < pv(i))
                         array(i+j-1,k+3) = devices(k);
+                        %sum = sum + array(i+j-1,k+3);
+                    elseif (count >= 0 && array(i+j-1,3) == 2 && sum > pv(i))
+                        array(i+j+count3-6,k+3) = devices(k);
+                        %sum = sum + array(i+j+1,k+3);
+                        
                     end
+                    sum = sum + devices(k);
                     count = count - 1;
                 else % can't use solar 
                     array(i+j-1,k+3) = 0;
 
-                    for m=11:49
+                    for m=1:49
                         count2 = dhours(k);
                         for n=1:dhours(k)
                             if (array(m,3) == 1 && count2 >=0)
@@ -136,10 +143,13 @@ for i=1:49
     end
 end
 
-
-
-
-
+for p=1:49
+    tot_sum = 0;
+    for q=4:9
+        tot_sum = tot_sum + array(p,q);
+        array(p,10) = tot_sum;
+    end
+end
 
 
 
