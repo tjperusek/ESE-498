@@ -104,7 +104,7 @@ for i=1:49
                         array(i+j-1,k+3) = devices(k);
                     end
                     count = count - 1;
-                else
+                else % can't use solar 
                     array(i+j-1,k+3) = 0;
 
                     for m=11:49
