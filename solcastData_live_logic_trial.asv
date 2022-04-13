@@ -98,25 +98,23 @@ for i=1:49
     while (j < 7)
         % Reset sum when going to next device
         sum = 0;
-        %for r=1:49
+        for r=1:49
             for m=1:dhours(j)
-                % Finding the sum of the past devices at the given index
-                % and then adding the device to be run to see if it can
-                % still be run
+                % Check to see if the device can be ran for entire running time
+                % during solar
                 for q=1:j
                     sum = sum + array(i,q+3);
                 end
                 sum = sum + devices(j);
-                % Check to see if the device can be ran for entire running time
-                % during solar
-                if (array(i+m-1,2) >= sum && array(i+m-1,2) >= devices(j))
+                if (array(r+m-1,2) >= sum && array(r+m-1,2) >= devices(j))
                     check(j) = 1;
                 else
                     check(j) = 0;
                 end
-            %end
+            end
         end
-
+        % Counter for the hours the device should be run while summing
+        sum_count = 0;
         for k=1:dhours(j)
             % If the recommendation is solar and the device can be ran for
             % the entire running time
