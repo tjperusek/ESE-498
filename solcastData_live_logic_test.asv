@@ -108,9 +108,6 @@ for i=1:49
                     check(j) = 1;
                     if (k == dhours(j) && last_check == 1)
                         j = j + 1;
-                        for r=1:k
-                            array(i+r-1,j+3) = devices(j);
-                        end
                         break;
                     end
                     last_check = 1;

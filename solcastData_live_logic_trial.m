@@ -92,13 +92,16 @@ for i=1:49
 end
 
 check = zeros(1,6);
+index = zeros(1,6);
+last_check = 1;
+offset = 0;
 j = 1;
 for i=1:49
     % Device counter
     while (j < 7)
         % Reset sum when going to next device
         sum = 0;
-        %for r=1:49
+        for r=1:49
             for m=1:dhours(j)
                 % Finding the sum of the past devices at the given index
                 % and then adding the device to be run to see if it can
@@ -109,27 +112,44 @@ for i=1:49
                 sum = sum + devices(j);
                 % Check to see if the device can be ran for entire running time
                 % during solar
-                if (array(i+m-1,2) >= sum && array(i+m-1,2) >= devices(j))
+                if (array(r+offset+m-1,2) >= sum && array(r+offset+m-1,2) >= devices(j))
                     check(j) = 1;
+                    if (k == dhours(j) && last_check == 1)
+                        j = j + 1;
+                        index(j) = r;
+                        offset = -1;
+                        break;
+                    end
+                    last_check = 1;                
                 else
                     check(j) = 0;
+                    last_check = 0;
                 end
-            %end
+                if (r + m - 1 == 49)
+                    break;
+                end
+                if (offset == -1)
+                    offset = 0;
+                end
+            end
         end
-
+        j = j + 1;
+        if (index(j) == 0)
+            index(j) = 1;
+        end
         for k=1:dhours(j)
             % If the recommendation is solar and the device can be ran for
             % the entire running time
-            if (array(i+k-1,3) == 2 && check(j) == 1)
+            if (array(index(j)+k-1,3) == 2 && check(j) == 1)
                 % If the solar generation is greater than the sum of the
                 % current running devices at that half hour, run the next
                 % device as well
-                if (array(i+k-1,2) >= sum)
-                    array(i+k-1,j+3) = devices(j);
+                if (array(index(j)+k-1,2) >= sum)
+                    array(index(j)+k-1,j+3) = devices(j);
                 % Run the device after the previous device is finished
                 else
-                    if (array(i+k-1+dhours(j-1),3) == 2)
-                        array(i+k-1+dhours(j-1),j+3) = devices(j);
+                    if (array(index(j)+k-1+dhours(j-1),3) == 2)
+                        array(index(j)+k-1+dhours(j-1),j+3) = devices(j);
                     end
                 end
             else
