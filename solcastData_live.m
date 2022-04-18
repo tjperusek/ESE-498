@@ -88,58 +88,120 @@ for i=1:49
         %array(i,1) = 'do nothing';
         array(i,3) = 0;
     end
-
 end
 
-sum = 0;
-count2 = 0;
-count3 = 1;
+check = zeros(1,6);
+last_check = 1;
+j = 1;
 for i=1:49
     if (array(i,3) == 2)
-        for k=1:6 %each device
-            count = dhours(k); %length of running device
-            count3 = count3 + 2;
-            for j=1:dhours(k)
-                if (pv(i) > devices(k))
-                    if (count >= 0 && array(i+j-1,3) == 2 && sum < pv(i))
-                        array(i+j-1,k+3) = devices(k);
-                        %sum = sum + array(i+j-1,k+3);
-                    elseif (count >= 0 && array(i+j-1,3) == 2 && sum > pv(i))
-                        array(i+j+count3-6,k+3) = devices(k);
-                        %sum = sum + array(i+j+1,k+3);
-                        
-                    end
-                    sum = sum + devices(k);
-                    count = count - 1;
-                else % can't use solar 
-                    array(i+j-1,k+3) = 0;
+        index = i;
+        break;
+    end
+end
 
-                    for m=1:49
-                        count2 = dhours(k);
-                        for n=1:dhours(k)
-                            if (array(m,3) == 1 && count2 >=0)
-                                array(m+n-1,k+3) = devices(k);
-                            end
-                            count2 = count2 - 1;
-                            if (count2 == 0)
-                                if k<6
-                                    k = k + 1;
-                                end
-                                break;
-                            end
+while (j < 7)
+    sum = 0;
+    for q=1:j
+        sum = sum + array(index,q+3);
+    end
+    sum = sum + devices(j);
+    for k=1:dhours(j)
+        if (array(index+k-1,3) == 2)
+            if (array(index+k-1,2) >= sum && array(index+k-1,2) >= devices(j))
+                check(j) = 1;
+                if (k == dhours(j) && last_check == 1)
+                    for r=1:k
+                        array(index+r-1,j+3) = devices(j);
+                    end
+                    j = j + 1;
+                    break;
+                end
+                last_check = 1;
+            else
+                check(j) = 0;
+                if (k == dhours(j) && last_check == 0)
+                    j = j + 1;
+                    break;
+                end
+                last_check = 0;
+            end
+        elseif (array(index+k-1,3) ~= 2 && last_check == 1)
+            check(j) = -1;
+            j = j + 1;
+            break;
+        end
+        if (index + k - 1 == 49)
+            check(j) = -1;
+            break;
+        end
+    end
+    if (j == 7)
+        break;
+    end
+end
+
+j = 1;
+while (j < 7)
+    if (check(j) == -1)
+        time_left = 0;
+        for n=1:49
+            % Searching for when in the array the recommendation is
+            % grid. Subtract by 1 because n starts at index 1
+            if (array(n,3) == 1)
+                array(n,j+3) = devices(j);
+                time_left = time_left + 1;
+            end
+            if (time_left == dhours(j))
+                time_left = 0;
+                j = j + 1;
+                break;
+            end
+        end
+    elseif (check(j) == 0)
+        sum = 0;
+        for q=1:j
+            if (j > 1)
+                sum = sum + array(index+dhours(j-1),q+3);
+            else
+                sum = 0;
+            end
+        end
+        sum = sum + devices(j);
+        for k=1:dhours(j)
+            if (array(index+k-1+dhours(j-1),3) == 2)
+                if (array(index+k-1+dhours(j-1),2) >= sum && array(index+k-1+dhours(j-1),2) >= devices(j))
+                    last_check = 1;
+                    if (k == dhours(j) && last_check == 1)
+                        for r=1:k
+                            array(index+r-1+dhours(j-1),j+3) = devices(j);
+                        end
+                        j = j + 1;
+                        break;
+                    end
+                else
+                    time_left = 0;
+                    for n=1:49
+                        % Searching for when in the array the recommendation is
+                        % grid. Subtract by 1 because n starts at index 1
+                        if (array(n,3) == 1)
+                            array(n,j+3) = devices(j);
+                            time_left = time_left + 1;
+                        end
+                        if (time_left == dhours(j))
+                            time_left = 0;
+                            j = j + 1;
+                            break;
                         end
                     end
                 end
+                if (j == 7)
+                    break;
+                end
             end
         end
-
-        break;
-    end
-    if (array(i,3) == 0)
-        array(i,4) = 0;
-    end
-    if (array(i,3) == 3)
-        array(i,4) = 0;
+    elseif (check(j) == 1)
+        j = j + 1;
     end
 end
 
