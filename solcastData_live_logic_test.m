@@ -117,6 +117,10 @@ while (j < 7)
                     end
                     j = j + 1;
                     break;
+                elseif (k == dhours(j) && last_check == 0)
+                    check(j) = 0;
+                    j = j + 1;
+                    break;
                 end
                 last_check = 1;
             else

@@ -117,6 +117,8 @@ while (j < 7)
                     end
                     j = j + 1;
                     break;
+                elseif ()
+
                 end
                 last_check = 1;
             else
@@ -155,30 +157,54 @@ while (j < 7)
             end
             if (time_left == dhours(j))
                 time_left = 0;
+                j = j + 1;
                 break;
             end
         end
     elseif (check(j) == 0)
+        sum = 0;
+        for q=1:j
+            if (j > 1)
+                sum = sum + array(index+dhours(j-1),q+3);
+            else
+                sum = 0;
+            end
+        end
+        sum = sum + devices(j);
         for k=1:dhours(j)
             if (array(index+k-1+dhours(j-1),3) == 2)
                 if (array(index+k-1+dhours(j-1),2) >= sum && array(index+k-1+dhours(j-1),2) >= devices(j))
                     last_check = 1;
                     if (k == dhours(j) && last_check == 1)
                         for r=1:k
-                            array(index+r-1+dhours(,j+3) = devices(j);
+                            array(index+r-1+dhours(j-1),j+3) = devices(j);
                         end
                         j = j + 1;
                         break;
                     end
-
-                array(index+k-1+dhours(j-1),j+3) = devices(j);
+                else
+                    time_left = 0;
+                    for n=1:49
+                        % Searching for when in the array the recommendation is
+                        % grid. Subtract by 1 because n starts at index 1
+                        if (array(n,3) == 1)
+                            array(n,j+3) = devices(j);
+                            time_left = time_left + 1;
+                        end
+                        if (time_left == dhours(j))
+                            time_left = 0;
+                            j = j + 1;
+                            break;
+                        end
+                    end
+                end
+                if (j == 7)
+                    break;
                 end
             end
         end
-    end
-    j = j + 1;
-    if (j == 7)
-        break;
+    elseif (check(j) == 1)
+        j = j + 1;
     end
 end
 
