@@ -73,8 +73,13 @@ devices = devices/2000;
 dhours = [16; 2; 2; 2; 2; 2];
 threshold = 0.5;
 
+% Empty Scheduling Array
 array = zeros(49,9);
+
+% First Column: 24 hours at half hour increments starting at the current
+% time
 array(:,1) = hour(cal1(1:49));
+% Second Column: forecasted PV (kW) at each half hour for 24 hours
 array(:,2) = double(pv(1,1:49))';
 for i=1:49
     %array(i,1) = i;
@@ -94,9 +99,6 @@ for i=1:49
 
 end
 
-check = zeros(1,6);
-last_check = 1;
-j = 1;
 for i=1:49
     if (array(i,3) == 2)
         index = i;
@@ -104,6 +106,15 @@ for i=1:49
     end
 end
 
+% Create check array for when to schedule.
+% 1: schedule at current index (solar)
+% -1: schedule at off-peak pricing (grid)
+% 0: schedule after last device ran (solar) if available, if not at
+% off-peak
+check = zeros(1,6);
+last_check = 1;
+% Increment the device
+j = 1;
 while (j < 7)
     sum = 0;
     for q=1:j
