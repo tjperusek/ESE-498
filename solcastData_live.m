@@ -67,27 +67,31 @@ ylabel('Cents per kWh')
 
 %% 
 
+% Inputs
 devices = [150; 450; 1400; 1500; 4500; 5000];
 devices = devices/2000;
 dhours = [16; 2; 2; 2; 2; 2];
+threshold = 0.5;
+
 array = zeros(49,9);
 array(:,1) = hour(cal1(1:49));
-array(:,2)=double(pv(1,1:49))';
+array(:,2) = double(pv(1,1:49))';
 for i=1:49
     %array(i,1) = i;
-    if (pricesF(i) == 8.67 && pv(i) < 0.5)
+    if (pricesF(i) == 8.67 && pv(i) < threshold)
         %array(i,1) = 'grid';
         array(i,3) = 1;
-    elseif (pricesF(i) == 8.67 && pv(i) >= 0.5)
+    elseif (pricesF(i) == 8.67 && pv(i) >= threshold)
         %array(i,1) = 'store';
         array(i,3) = 3;
-    elseif (pricesF(i) == 8.92 && pv(i) >= 0.5)
+    elseif (pricesF(i) == 8.92 && pv(i) >= threshold)
         %array(i,1) = 'solar';
         array(i,3) = 2;
     else
         %array(i,1) = 'do nothing';
         array(i,3) = 0;
     end
+
 end
 
 check = zeros(1,6);
@@ -206,14 +210,6 @@ while (j < 7)
         end
     elseif (check(j) == 1)
         j = j + 1;
-    end
-end
-
-for p=1:49
-    tot_sum = 0;
-    for q=4:9
-        tot_sum = tot_sum + array(p,q);
-        array(p,10) = tot_sum;
     end
 end
 
