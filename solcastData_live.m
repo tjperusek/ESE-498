@@ -213,7 +213,13 @@ while (j < 7)
     end
 end
 
-
+for p=1:49
+    tot_sum = 0;
+    for q=4:9
+        tot_sum = tot_sum + array(p,q);
+        array(p,10) = tot_sum;
+    end
+end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
