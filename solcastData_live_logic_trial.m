@@ -92,95 +92,132 @@ for i=1:49
 end
 
 check = zeros(1,6);
-index = zeros(1,6);
 last_check = 1;
-offset = 0;
 j = 1;
 for i=1:49
-    % Device counter
-    while (j < 7)
-        % Reset sum when going to next device
-        sum = 0;
-        for r=1:49
-            for m=1:dhours(j)
-                % Finding the sum of the past devices at the given index
-                % and then adding the device to be run to see if it can
-                % still be run
-                for q=1:j
-                    sum = sum + array(i,q+3);
-                end
-                sum = sum + devices(j);
-                % Check to see if the device can be ran for entire running time
-                % during solar
-                if (array(r+offset+m-1,2) >= sum && array(r+offset+m-1,2) >= devices(j))
-                    check(j) = 1;
-                    if (k == dhours(j) && last_check == 1)
-                        j = j + 1;
-                        index(j) = r;
-                        offset = -1;
-                        break;
+    if (array(i,3) == 2)
+        index = i;
+        break;
+    end
+end
+
+while (j < 7)
+    sum = 0;
+    for q=1:j
+        sum = sum + array(index,q+3);
+    end
+    sum = sum + devices(j);
+    for k=1:dhours(j)
+        if (array(index+k-1,3) == 2)
+            if (array(index+k-1,2) >= sum && array(index+k-1,2) >= devices(j))
+                check(j) = 1;
+                if (k == dhours(j) && last_check == 1)
+                    for r=1:k
+                        array(index+r-1,j+3) = devices(j);
                     end
-                    last_check = 1;                
-                else
+                    j = j + 1;
+                    break;
+                elseif (k == dhours(j) && last_check == 0)
                     check(j) = 0;
-                    last_check = 0;
-                end
-                if (r + m - 1 == 49)
+                    j = j + 1;
                     break;
                 end
-                if (offset == -1)
-                    offset = 0;
-                end
-            end
-        end
-        j = j + 1;
-        if (index(j) == 0)
-            index(j) = 1;
-        end
-        for k=1:dhours(j)
-            % If the recommendation is solar and the device can be ran for
-            % the entire running time
-            if (array(index(j)+k-1,3) == 2 && check(j) == 1)
-                % If the solar generation is greater than the sum of the
-                % current running devices at that half hour, run the next
-                % device as well
-                if (array(index(j)+k-1,2) >= sum)
-                    array(index(j)+k-1,j+3) = devices(j);
-                % Run the device after the previous device is finished
-                else
-                    if (array(index(j)+k-1+dhours(j-1),3) == 2)
-                        array(index(j)+k-1+dhours(j-1),j+3) = devices(j);
-                    end
-                end
+                last_check = 1;
             else
                 check(j) = 0;
+                if (k == dhours(j) && last_check == 0)
+                    j = j + 1;
+                    break;
+                end
+                last_check = 0;
             end
+        elseif (array(index+k-1,3) ~= 2 && last_check == 1)
+            check(j) = -1;
+            j = j + 1;
+            break;
         end
-        
+        if (index + k - 1 == 49)
+            check(j) = -1;
+            break;
+        end
+    end
+    if (j == 7)
+        break;
+    end
+end
+
+j = 1;
+while (j < 7)
+    if (check(j) == -1)
         time_left = 0;
         for n=1:49
             % Searching for when in the array the recommendation is
             % grid. Subtract by 1 because n starts at index 1
-            if (array(n,3) == 1 && check(j) == 0)
+            if (array(n,3) == 1)
                 array(n,j+3) = devices(j);
                 time_left = time_left + 1;
             end
             if (time_left == dhours(j))
                 time_left = 0;
+                j = j + 1;
                 break;
             end
         end
-
-        if (array(i,3) == 0)
-            array(i,j+3) = 0;
+    elseif (check(j) == 0)
+        sum = 0;
+        for q=1:j
+            if (j > 1)
+                sum = sum + array(index+dhours(j-1),q+3);
+            else
+                sum = 0;
+            end
         end
-        if (array(i,3) == 3)
-            array(i,j+3) = 0;
+        sum = sum + devices(j);
+        for k=1:dhours(j)
+            if (array(index+k-1+dhours(j-1),3) == 2)
+                if (array(index+k-1+dhours(j-1),2) >= sum && array(index+k-1+dhours(j-1),2) >= devices(j))
+                    last_check = 1;
+                    if (k == dhours(j) && last_check == 1)
+                        for r=1:k
+                            array(index+r-1+dhours(j-1),j+3) = devices(j);
+                        end
+                        j = j + 1;
+                        break;
+                    end
+                else
+                    time_left = 0;
+                    for n=1:49
+                        % Searching for when in the array the recommendation is
+                        % grid. Subtract by 1 because n starts at index 1
+                        if (array(n,3) == 1)
+                            array(n,j+3) = devices(j);
+                            time_left = time_left + 1;
+                        end
+                        if (time_left == dhours(j))
+                            time_left = 0;
+                            j = j + 1;
+                            break;
+                        end
+                    end
+                end
+                if (j == 7)
+                    break;
+                end
+            end
         end
-        % Increment which device we are placing in the array
+    elseif (check(j) == 1)
         j = j + 1;
     end
 end
+
+for p=1:49
+    tot_sum = 0;
+    for q=4:9
+        tot_sum = tot_sum + array(p,q);
+        array(p,10) = tot_sum;
+    end
+end
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 figure(2)
