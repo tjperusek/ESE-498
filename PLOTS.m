@@ -19,19 +19,18 @@ simplyDevice = array(:,4:9);
 figure(2)
 for k = 1:6
     tick = 0;
-    first = 0;
     timeVect =[];
     for i=1:length(array)
         if(simplyDevice(i,k)~=0) %make sure we are running a device
-            first = first +1;
             y=simplyDevice(i,k);
             tick = tick+1;
             timeVect = [timeVect cal1(i,1)];
         end
     end
     yAx= y*(ones(tick,1));
-    line(timeVect,yAx,'color',C(k),'LineWidth',3.0)
+    line(timeVect,yAx,'color',C(k),'LineWidth',4.0)
     hold on
 end
-legend('EV','Dryer','Laundry Machine',...
-    'Dish Washer','Water Heater','Vacuum');
+legend('EV','Vacuum','Water Heater',...
+    'Dish Washer','Laundry Machine','Dryer');
+grid;
