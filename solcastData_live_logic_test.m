@@ -82,23 +82,24 @@ array(:,1) = hour(cal1(1:49));
 % Second Column: forecasted PV (kW) at each half hour for 24 hours
 array(:,2) = double(pv(1,1:49))';
 for i=1:49
-    %array(i,1) = i;
     if (pricesF(i) == 8.67 && pv(i) < threshold)
-        %array(i,1) = 'grid';
+        % GRID
         array(i,3) = 1;
     elseif (pricesF(i) == 8.67 && pv(i) >= threshold)
-        %array(i,1) = 'store';
+        % STORE
         array(i,3) = 3;
     elseif (pricesF(i) == 8.92 && pv(i) >= threshold)
-        %array(i,1) = 'solar';
+        % SOLAR
         array(i,3) = 2;
     else
-        %array(i,1) = 'do nothing';
+        % NOTHING
         array(i,3) = 0;
     end
 
 end
 
+% Search for the first instance that we should use solar for as many
+% devices as possible
 for i=1:49
     if (array(i,3) == 2)
         index = i;
@@ -112,25 +113,43 @@ end
 % 0: schedule after last device ran (solar) if available, if not at
 % off-peak
 check = zeros(1,6);
+
+% Last check helps to clarify the devices that can and cannot be run on
+% solar. 0->0: cannot run (run on grid). 1->1: can run (run on solar at 
+% current index). 0->1: couldn't run, now can (run on solar at his later 
+% index). 1->0: could run, now can't (run on grid).
 last_check = 1;
+
 % Increment the device
 j = 1;
 while (j < 7)
+    % Reset sum after incrementing device
     sum = 0;
+    % Find the sum of all devices previously ran at the first solar index
     for q=1:j
         sum = sum + array(index,q+3);
     end
+    % Ensure that the current device can also be ran
     sum = sum + devices(j);
     for k=1:dhours(j)
+        % Check to see if we should use solar for the entire device 
+        % duration
         if (array(index+k-1,3) == 2)
+            % Check to see if solar power generated is greater than the sum
+            % of all devices and all devices can be ran during the entire 
+            % running duration
             if (array(index+k-1,2) >= sum && array(index+k-1,2) >= devices(j))
                 check(j) = 1;
+                % Schedule the device on solar if for all hours check = 1
                 if (k == dhours(j) && last_check == 1)
                     for r=1:k
                         array(index+r-1,j+3) = devices(j);
                     end
                     j = j + 1;
                     break;
+                % If not, the device has two future possibilities: can run 
+                % on solar at a later index or on grid. This is determined
+                % in later logic.
                 elseif (k == dhours(j) && last_check == 0)
                     check(j) = 0;
                     j = j + 1;
@@ -145,6 +164,8 @@ while (j < 7)
                 end
                 last_check = 0;
             end
+        % This is the situation where last check is 1->0, so it cannot be
+        % ran because the threshold > solar generated. Will run on grid
         elseif (array(index+k-1,3) ~= 2 && last_check == 1)
             check(j) = -1;
             j = j + 1;
@@ -165,12 +186,14 @@ while (j < 7)
     if (check(j) == -1)
         time_left = 0;
         for n=1:49
-            % Searching for when in the array the recommendation is
-            % grid. Subtract by 1 because n starts at index 1
+            % Searching for when in the array the recommendation is grid
+            % and schedule the device
             if (array(n,3) == 1)
                 array(n,j+3) = devices(j);
                 time_left = time_left + 1;
             end
+            % Break after the device is scheduled for the entire device
+            % duration and increment device
             if (time_left == dhours(j))
                 time_left = 0;
                 j = j + 1;
