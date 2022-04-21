@@ -35,7 +35,7 @@ t = datetime('now'):minutes(30):datetime('now')+hours(24);
 t.Format = 'HH:mm';
 t.TimeZone= 'America/Chicago';
 figure(1)
-plot(cal1(1:48),double(pv(1,1:48)));
+plot(cal1(1:49),double(pv(1,1:49)));
 xtickformat('HH:mm')
 title('Tomorrow')
 xlabel('Time')
