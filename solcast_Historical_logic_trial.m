@@ -84,23 +84,6 @@ array(:,1) = hour(cal1(1:49));
 % Second Column: forecasted PV (kW) at each half hour for 24 hours
 array(:,2) = double(pv(1,1:49))';
 
-if (season == true)
-    for i=1:49
-        if (pricesF(i) == 8.67 && pv(i) < threshold)
-            % GRID
-            array(i,3) = 1;
-        elseif (pricesF(i) == 8.67 && pv(i) >= threshold)
-            % STORE
-            array(i,3) = 3;
-        elseif (pricesF(i) == 8.92 && pv(i) >= threshold)
-            % SOLAR
-            array(i,3) = 2;
-        else
-            % NOTHING
-            array(i,3) = 0;
-        end
-    end
-end
 for i=1:49
     if (pricesF(i) == 8.67 && pv(i) < threshold)
         % GRID
@@ -267,57 +250,6 @@ while (j < 7)
     end
 end
 
-% j = 1;
-% for i=1:49
-%     % Device counter
-%     while (j < 7)
-%         for k=1:dhours(j)
-%             % If the recommendation is solar and the device can be ran for
-%             % the entire running time
-%             if (array(i+k-1,3) == 2 && check(j) == 1)
-%                 % If the solar generation is greater than the sum of the
-%                 % current running devices at that half hour, run the next
-%                 % device as well
-%                 if (array(i+k-1,2) >= sum)
-%                     array(i+k-1,j+3) = devices(j);
-%                 % Run the device after the previous device is finished
-%                 else
-%                     if (array(i+k-1+dhours(j-1),3) == 2)
-%                         array(i+k-1+dhours(j-1),j+3) = devices(j);
-%                     end
-%                 end
-%             else
-%                 check(j) = 0;
-%             end
-%             if (i + k - 1 == 49)
-%                 break;
-%             end
-%         end
-%         
-%         time_left = 0;
-%         for n=1:49
-%             % Searching for when in the array the recommendation is
-%             % grid. Subtract by 1 because n starts at index 1
-%             if (array(n,3) == 1 && check(j) == 0)
-%                 array(n,j+3) = devices(j);
-%                 time_left = time_left + 1;
-%             end
-%             if (time_left == dhours(j))
-%                 time_left = 0;
-%                 break;
-%             end
-%         end
-% 
-%         if (array(i,3) == 0)
-%             array(i,j+3) = 0;
-%         end
-%         if (array(i,3) == 3)
-%             array(i,j+3) = 0;
-%         end
-%         % Increment which device we are placing in the array
-%         j = j + 1;
-%     end
-% end
 for p=1:49
     tot_sum = 0;
     for q=4:9
