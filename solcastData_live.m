@@ -86,7 +86,7 @@ plot(t,pricesF);
 datetick('x', 'dd-mmm-yyyy HH:MM')
 ylabel('Cents per kWh')
 
-%% 
+%%
 
 % Inputs
 devices = [150; 450; 1400; 1500; 4500; 5000];
@@ -104,6 +104,7 @@ array(:,1) = hour(cal1(1:49));
 % Second Column: forecasted PV (kW) at each half hour for 24 hours
 array(:,2) = double(pv(1,1:49))';
 
+% Winter
 if (season == true)
     for i=1:49
         if (pricesF(i) == 8.67 && pv(i) < threshold)
@@ -121,6 +122,7 @@ if (season == true)
         end
     end
 end
+% Summer
 if (season == false)
     for i=1:49
         if (pricesF(i) == 12.58 && pv(i) < threshold)
@@ -225,6 +227,7 @@ end
 j = 1;
 count = 0;
 while (j < 7)
+    % Device has to be ran on the grid at off-peak pricing
     if (check(j) == -1)
         time_left = 0;
         for n=1:49
@@ -318,6 +321,40 @@ for p=1:49
     end
 end
 
+modelCost=0;
+for i=1:49
+    if (array(i,10)-array(i,2))>0
+        modelCost = modelCost + (array(i,10)-array(i,2))*pricesF(i);
+    end
+end
+%%% Random Assortment %%%
+% Empty Scheduling Array
+arrayRand= zeros(49,9);
+
+% First Column: 24 hours at half hour increments starting at the current
+% time
+arrayRand(:,1) = hour(cal1(1:49));
+% Second Column: forecasted PV (kW) at each half hour for 24 hours
+arrayRand(:,2) = double(pv(1,1:49))';
+for z = 1:6
+    randomStart=randi(49-dhours(z));
+    for y=1:dhours(z)
+    arrayRand(randomStart+y-1,z+2)=devices(z);
+    end
+end
+for p=1:49
+    tot_sum = 0;
+    for q=3:8
+        tot_sum = tot_sum + arrayRand(p,q);
+        arrayRand(p,9) = tot_sum;
+    end
+end
+randCost=0;
+for i=1:49
+    if (arrayRand(i,9)-arrayRand(i,2))>0
+        randCost = randCost + (arrayRand(i,9)-arrayRand(i,2))*pricesF(i);
+    end
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 figure(2)
 plot(calPast(1:48),double(pvPast(1:48)))
