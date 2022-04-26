@@ -35,7 +35,7 @@ t = datetime('now'):minutes(30):datetime('now')+hours(24);
 t.Format = 'HH:mm';
 t.TimeZone= 'America/Chicago';
 figure(1)
-plot(cal1(1:48),double(pv(1,1:48)));
+plot(cal1(1:49),double(pv(1,1:49)));
 xtickformat('HH:mm')
 title('Tomorrow')
 xlabel('Time')
@@ -43,20 +43,41 @@ ylabel('Solar AC Generation (kW)');
 grid on;
 
 
-
 a = datenum(0/24:1/48:23/24+2/48);
 tUpper=datetime("21:00",'InputFormat','HH:mm','Format','HH:mm');
 tLower=datetime("09:00",'InputFormat','HH:mm','Format','HH:mm');
 %C = datetime(datestr(a, 'HH:mm'),'InputFormat','HH:mm','Format','HH:mm');
 %C.TimeZone= 'America/Chicago';
-pricesF=zeros(1,49);
-for i=1:length(a)
-    if  hour(t(i))>=hour(tLower)&&hour(t(i))<hour(tUpper)
-        pricesF(i)=8.92;
-    else
-        pricesF(i)=8.67;
-    end
 
+% Season span
+today = datetime('today');
+mo_lower = datetime(2022,5,1);
+mo_higher = datetime(2022,10,1);
+% True: Winter; False: Summer
+boolean season;
+
+% Determine the season
+if (isbetween(today, mo_lower, mo_higher))
+    season = false;
+else
+    season = true;
+end
+
+pricesF = zeros(1,49);
+for i=1:length(a)
+    if (hour(t(i))>=hour(tLower) && hour(t(i))<hour(tUpper))
+        if (season == true)
+            pricesF(i) = 8.92;
+        else
+            pricesF(i) = 13.13;
+        end
+    else
+        if (season == true)
+            pricesF(i) = 8.67;
+        else
+            pricesF(i) = 12.58;
+        end
+    end
 end
 
 yyaxis right
@@ -72,31 +93,54 @@ devices = [150; 450; 1400; 1500; 4500; 5000];
 devices = devices/2000;
 dhours = [16; 2; 2; 2; 2; 2];
 threshold = 0.5;
+thresh_diff = 1;
 
+% Empty Scheduling Array
 array = zeros(49,9);
-array(:,1) = hour(cal1(1:49));
-array(:,2) = double(pv(1,1:49))';
-for i=1:49
-    %array(i,1) = i;
-    if (pricesF(i) == 8.67 && pv(i) < threshold)
-        %array(i,1) = 'grid';
-        array(i,3) = 1;
-    elseif (pricesF(i) == 8.67 && pv(i) >= threshold)
-        %array(i,1) = 'store';
-        array(i,3) = 3;
-    elseif (pricesF(i) == 8.92 && pv(i) >= threshold)
-        %array(i,1) = 'solar';
-        array(i,3) = 2;
-    else
-        %array(i,1) = 'do nothing';
-        array(i,3) = 0;
-    end
 
+% First Column: 24 hours at half hour increments starting at the current
+% time
+array(:,1) = hour(cal1(1:49));
+% Second Column: forecasted PV (kW) at each half hour for 24 hours
+array(:,2) = double(pv(1,1:49))';
+
+if (season == true)
+    for i=1:49
+        if (pricesF(i) == 8.67 && pv(i) < threshold)
+            % GRID
+            array(i,3) = 1;
+        elseif (pricesF(i) == 8.67 && pv(i) >= threshold)
+            % STORE
+            array(i,3) = 2;
+        elseif (pricesF(i) == 8.92 && pv(i) >= threshold)
+            % SOLAR
+            array(i,3) = 2;
+        else
+            % NOTHING
+            array(i,3) = 0;
+        end
+    end
+end
+if (season == false)
+    for i=1:49
+        if (pricesF(i) == 12.58 && pv(i) < threshold)
+            % GRID
+            array(i,3) = 1;
+        elseif (pricesF(i) == 12.58 && pv(i) >= threshold)
+            % STORE
+            array(i,3) = 2;
+        elseif (pricesF(i) == 13.13 && pv(i) >= threshold)
+            % SOLAR
+            array(i,3) = 2;
+        else
+            % NOTHING
+            array(i,3) = 0;
+        end
+    end
 end
 
-check = zeros(1,6);
-last_check = 1;
-j = 1;
+% Search for the first instance that we should use solar for as many
+% devices as possible
 for i=1:49
     if (array(i,3) == 2)
         index = i;
@@ -104,22 +148,49 @@ for i=1:49
     end
 end
 
+% Create check array for when to schedule.
+% 1: schedule at current index (solar)
+% -1: schedule at off-peak pricing (grid)
+% 0: schedule after last device ran (solar) if available, if not at
+% off-peak
+check = zeros(1,6);
+
+% Last check helps to clarify the devices that can and cannot be run on
+% solar. 0->0: cannot run (run on grid). 1->1: can run (run on solar at 
+% current index). 0->1: couldn't run, now can (run on solar at his later 
+% index). 1->0: could run, now can't (run on grid).
+last_check = 1;
+
+% Increment the device
+j = 1;
 while (j < 7)
+    % Reset sum after incrementing device
     sum = 0;
+    % Find the sum of all devices previously ran at the first solar index
     for q=1:j
         sum = sum + array(index,q+3);
     end
+    % Ensure that the current device can also be ran
     sum = sum + devices(j);
     for k=1:dhours(j)
+        % Check to see if we should use solar for the entire device 
+        % duration
         if (array(index+k-1,3) == 2)
-            if (array(index+k-1,2) >= sum && array(index+k-1,2) >= devices(j))
+            % Check to see if solar power generated is greater than the sum
+            % of all devices and all devices can be ran during the entire 
+            % running duration
+            if ((array(index+k-1,2) + thresh_diff) >= sum && (array(index+k-1,2) + thresh_diff) >= devices(j))
                 check(j) = 1;
+                % Schedule the device on solar if for all hours check = 1
                 if (k == dhours(j) && last_check == 1)
                     for r=1:k
                         array(index+r-1,j+3) = devices(j);
                     end
                     j = j + 1;
                     break;
+                % If not, the device has two future possibilities: can run 
+                % on solar at a later index or on grid. This is determined
+                % in later logic.
                 elseif (k == dhours(j) && last_check == 0)
                     check(j) = 0;
                     j = j + 1;
@@ -134,6 +205,8 @@ while (j < 7)
                 end
                 last_check = 0;
             end
+        % This is the situation where last check is 1->0, so it cannot be
+        % ran because the threshold > solar generated. Will run on grid
         elseif (array(index+k-1,3) ~= 2 && last_check == 1)
             check(j) = -1;
             j = j + 1;
@@ -150,16 +223,19 @@ while (j < 7)
 end
 
 j = 1;
+count = 0;
 while (j < 7)
     if (check(j) == -1)
         time_left = 0;
         for n=1:49
-            % Searching for when in the array the recommendation is
-            % grid. Subtract by 1 because n starts at index 1
+            % Searching for when in the array the recommendation is grid
+            % and schedule the device
             if (array(n,3) == 1)
                 array(n,j+3) = devices(j);
                 time_left = time_left + 1;
             end
+            % Break after the device is scheduled for the entire device
+            % duration and increment device
             if (time_left == dhours(j))
                 time_left = 0;
                 j = j + 1;
@@ -176,30 +252,51 @@ while (j < 7)
             end
         end
         sum = sum + devices(j);
+        index2 = index;
         for k=1:dhours(j)
-            if (array(index+k-1+dhours(j-1),3) == 2)
-                if (array(index+k-1+dhours(j-1),2) >= sum && array(index+k-1+dhours(j-1),2) >= devices(j))
+            if (array(index2+k-1+dhours(j-1),3) == 2)
+                if ((array(index2+k-1+dhours(j-1),2) + thresh_diff) >= sum && (array(index2+k-1+dhours(j-1),2) + thresh_diff) >= devices(j))
                     last_check = 1;
                     if (k == dhours(j) && last_check == 1)
                         for r=1:k
-                            array(index+r-1+dhours(j-1),j+3) = devices(j);
+                            array(index2+r-1+dhours(j-1),j+3) = devices(j);
                         end
+                        count = index2 - index;
                         j = j + 1;
                         break;
                     end
                 else
-                    time_left = 0;
-                    for n=1:49
-                        % Searching for when in the array the recommendation is
-                        % grid. Subtract by 1 because n starts at index 1
-                        if (array(n,3) == 1)
-                            array(n,j+3) = devices(j);
-                            time_left = time_left + 1;
+                    index2 = index + count + dhours(j-1);
+                    sum = 0;
+                    for q=1:j
+                        if (j > 1)
+                            sum = sum + array(index2+dhours(j-1),q+3);
+                        else
+                            sum = 0;
                         end
-                        if (time_left == dhours(j))
-                            time_left = 0;
-                            j = j + 1;
-                            break;
+                    end
+                    sum = sum + devices(j);
+                    
+                    if ((array(index2+k-1+dhours(j-1),2) + thresh_diff) >= sum && (array(index2+k-1+dhours(j-1),2) + thresh_diff) >= devices(j))
+                        last_check = 1;
+                    else
+                        last_check = 0;
+                    end
+
+                    if (last_check == 0)
+                        time_left = 0;
+                        for n=1:49
+                            % Searching for when in the array the recommendation is
+                            % grid. Subtract by 1 because n starts at index 1
+                            if (array(n,3) == 1)
+                                array(n,j+3) = devices(j);
+                                time_left = time_left + 1;
+                            end
+                            if (time_left == dhours(j))
+                                time_left = 0;
+                                j = j + 1;
+                                break;
+                            end
                         end
                     end
                 end
@@ -220,7 +317,6 @@ for p=1:49
         array(p,10) = tot_sum;
     end
 end
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 figure(2)
