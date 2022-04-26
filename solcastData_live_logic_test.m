@@ -86,18 +86,14 @@ plot(t,pricesF);
 datetick('x', 'dd-mmm-yyyy HH:MM')
 ylabel('Cents per kWh')
 
-%% 
+%%
 
 % Inputs
 devices = [150; 450; 1400; 1500; 4500; 5000];
 devices = devices/2000;
 dhours = [16; 2; 2; 2; 2; 2];
 threshold = 0.5;
-<<<<<<< Updated upstream
-thresh_diff = 0.6;
-=======
-thresh_diff = 1;
->>>>>>> Stashed changes
+thresh_diff = 0;
 
 % Empty Scheduling Array
 array = zeros(49,9);
@@ -185,11 +181,7 @@ while (j < 7)
             % Check to see if solar power generated is greater than the sum
             % of all devices and all devices can be ran during the entire 
             % running duration
-<<<<<<< Updated upstream
-            if (array(index+k-1,2)+ thresh_diff >= sum && (array(index+k-1,2) + thresh_diff) >= devices(j))
-=======
             if ((array(index+k-1,2) + thresh_diff) >= sum && (array(index+k-1,2) + thresh_diff) >= devices(j))
->>>>>>> Stashed changes
                 check(j) = 1;
                 % Schedule the device on solar if for all hours check = 1
                 if (k == dhours(j) && last_check == 1)
@@ -265,13 +257,8 @@ while (j < 7)
         sum = sum + devices(j);
         index2 = index;
         for k=1:dhours(j)
-<<<<<<< Updated upstream
-            if (array(index+k-1+dhours(j-1),3) == 2)
-                if (array(index+k-1+dhours(j-1),2) >= sum && (array(index+k-1+dhours(j-1),2)+thresh_diff)>= devices(j))
-=======
             if (array(index2+k-1+dhours(j-1),3) == 2)
                 if ((array(index2+k-1+dhours(j-1),2) + thresh_diff) >= sum && (array(index2+k-1+dhours(j-1),2) + thresh_diff) >= devices(j))
->>>>>>> Stashed changes
                     last_check = 1;
                     if (k == dhours(j) && last_check == 1)
                         for r=1:k
