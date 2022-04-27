@@ -2,14 +2,16 @@
 numTime = datenum(cal1(1:49));
 bar(numTime,[array(:,10) array(:,2)]);
 xlabel('Time');
-ylabel('KW')
-legend('Used','Generated')
+ylabel('KW');
 %hold on
 
 yyaxis right
 plot(numTime,pricesF);
-datetick('x', 'mmm dd, HH:MM')
-ylabel('Cents per kWh')
+datetick('x', 'mmm dd, HH:MM');
+ylabel('Cents per kWh');
+
+legend('Used','Generated',...
+    'Electricity Pricing');
 
 %datetick('x',15)
 
@@ -29,15 +31,15 @@ for k = 1:6
         end
     end
     yAx= y*(ones(tick,1));
-    line(timeVect,yAx,'color',C(k),'LineWidth',8.0)
+    line(timeVect,yAx,'color',C(k),'LineWidth',8.0);
     hold on
 end
 grid;
-xlabel('Time')
-ylabel('KW')
-title('Devices Run Time')
+xlabel('Time');
+ylabel('KW');
+title('Devices Run Time');
 yyaxis right
 plot(cal1(1:49),pricesF,'color',[0.9290, 0.6940, 0.1250]);
-ylabel('Cents per kWh')
+ylabel('Cents per kWh');
 legend('EV','Vacuum','Water Heater',...
     'Dish Washer','Laundry Machine','Dryer','Electricity Price');
