@@ -3,7 +3,8 @@ numTime = datenum(cal1(1:49));
 bar(numTime,[array(:,10) array(:,2)]);
 xlabel('Time');
 ylabel('KW')
-legend('Used','Generated')
+title('Energy Usage vs Energy Generated')
+legend('Usage','Generated')
 %hold on
 
 yyaxis right
@@ -12,8 +13,6 @@ datetick('x', 'mmm dd, HH:MM')
 ylabel('Cents per kWh')
 
 %datetick('x',15)
-
-
 
 C = ['r','g','b','m','c','k'];
 simplyDevice = array(:,4:9);
@@ -33,9 +32,10 @@ for k = 1:6
     hold on
 end
 grid;
+%datetick('x', 'mmm dd, HH:MM')
 xlabel('Time')
 ylabel('KW')
-title('Devices Run Time')
+title('Device Schedule')
 yyaxis right
 plot(cal1(1:49),pricesF,'color',[0.9290, 0.6940, 0.1250]);
 ylabel('Cents per kWh')
