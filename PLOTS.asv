@@ -2,9 +2,11 @@
 numTime = datenum(cal1(1:49));
 bar(numTime,[array(:,10) array(:,2)]);
 xlabel('Time');
+<<<<<<< HEAD
 ylabel('KW')
 title('Energy Usage vs Energy Generated')
 legend('Usage','Generated')
+
 ylabel('KW');
 
 %hold on
