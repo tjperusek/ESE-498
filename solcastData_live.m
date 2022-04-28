@@ -93,7 +93,7 @@ devices = [150; 450; 1400; 1500; 4500; 5000];
 devices = devices/2000;
 dhours = [16; 2; 2; 2; 2; 2];
 threshold = 0.5;
-thresh_diff = linspace(0,0.75);
+thresh_diff = linspace(0,3);
 %thresh_diff = 0.6;
 
 % April 28, 2022
