@@ -93,10 +93,17 @@ devices = [150; 450; 1400; 1500; 4500; 5000];
 devices = devices/2000;
 dhours = [16; 2; 2; 2; 2; 2];
 threshold = 0.5;
-thresh_diff = linspace(0,0.5);
+thresh_diff = linspace(0,0.75);
 %thresh_diff = 0.6;
 
-
+% April 28, 2022
+%
+% Thresh: 0; Cost: 82.3650
+% Thresh: 0.5; Cost: 87.3858
+% Thresh: 1; Cost: 32.7317
+% Best Thresh: 1.1515; Cost: 32.7317
+% Thresh: 1.5; Cost: 55.9857
+% Thresh: 2; Cost: 55.9857
 
 for optimizer = 1:length(thresh_diff)
     % Empty Scheduling Array
@@ -374,7 +381,7 @@ for optimizer = 1:length(thresh_diff)
         end
     end
     if MinModelCost>0
-        if(modelCost<MinModelCost)
+        if(modelCost<=MinModelCost)
             MinModelCost=modelCost;
             bestThresh = thresh_diff(optimizer);
         end
